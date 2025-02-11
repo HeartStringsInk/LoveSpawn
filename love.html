@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Previous head section remains the same -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Language Quiz</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Previous styles remain the same */
+        body {
+            background: linear-gradient(135deg, #ffe6e6 0%, #ffb3d9 100%);
+            min-height: 100vh;
+            color: #4a4a4a;
+        }
+        .chat-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+            border-radius: 15px;
+        }
+        .message {
+            max-width: 80%;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
+        }
+        .quiz-message {
+            background-color: #fff;
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin-left: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .user-message {
+            background-color: #ff99cc;
+            color: white;
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin-left: auto;
+            margin-right: 10px;
+        }
+        .choice-btn {
+            transition: all 0.3s;
+            border-radius: 25px;
+            background-color: #fff;
+            border: 2px solid #ff99cc;
+            color: #ff66b2;
+            margin: 5px 0;
+        }
+        .choice-btn:hover {
+            background-color: #ff99cc;
+            color: white;
+            transform: translateY(-2px);
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 20px;
+        }
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+            background: #ff99cc;
+            border-radius: 50%;
+            animation: typingDot 1.4s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        .progress-bar {
+            height: 4px;
+            background: #ff99cc;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progress-bar"></div>
+    <!-- Previous container structure remains the same -->
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div id="start-screen" class="text-center mb-4">
+                    <h1 class="display-4 mb-3">💘 Love Language Quiz 💝</h1>
+                    <p class="lead">Let's explore how you give and receive love through 12 heart-warming questions!</p>
+                    <button id="start-btn" class="btn btn-lg px-5 py-3 mb-3 choice-btn">Start Chatting</button>
+                </div>
+
+                <div id="chat-screen" style="display: none;">
+                    <div class="card shadow-lg">
+                        <div id="chat-container" class="chat-container">
+                        </div>
+                        <div id="choices-container" class="card-footer bg-white p-3" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const conversations = [
+            {
+                intro: "Hi there! 👋 I'm your friendly love language guide. Ready to discover how you express and receive love? We'll explore this together through 12 questions!",
+                text: "Let's start with something simple! When you've had a long day, what makes you feel most cared for?",
+                choices: [
+                    { text: "A warm, comforting hug 🤗", trait: "Physical" },
+                    { text: "Someone making dinner for me ✨", trait: "Service" },
+                    { text: "Hearing 'I'm proud of you' 💌", trait: "Words" },
+                    { text: "Someone sitting with me to talk about my day 💕", trait: "Time" },
+                    { text: "Receiving a small thoughtful gift 🎁", trait: "Gifts" }
+                ]
+            },
+            {
+                text: "That's lovely! Now imagine your perfect Sunday morning. What would make it special?",
+                choices: [
+                    { text: "Cuddling in bed 💑", trait: "Physical" },
+                    { text: "Breakfast in bed prepared for me 🍳", trait: "Service" },
+                    { text: "Morning texts full of sweet nothings 📱", trait: "Words" },
+                    { text: "Uninterrupted time together with no plans 🌅", trait: "Time" },
+                    { text: "Finding a surprise gift by my pillow 🎁", trait: "Gifts" }
+                ]
+            },
+            {
+                text: "When you're feeling down, what cheers you up the most?",
+                choices: [
+                    { text: "A long, tight hug 🫂", trait: "Physical" },
+                    { text: "Someone taking care of my responsibilities 🌟", trait: "Service" },
+                    { text: "Words of encouragement and support 💭", trait: "Words" },
+                    { text: "Someone dropping everything to be with me ⭐", trait: "Time" },
+                    { text: "Receiving a meaningful gift to lift my spirits 🎀", trait: "Gifts" }
+                ]
+            },
+            {
+                text: "In a relationship, what makes you feel most appreciated?",
+                choices: [
+                    { text: "Frequent physical affection 💖", trait: "Physical" },
+                    { text: "Partner helping with daily tasks 🏠", trait: "Service" },
+                    { text: "Regular compliments and appreciation 💫", trait: "Words" },
+                    { text: "Undivided attention during conversations 👥", trait: "Time" },
+                    { text: "Thoughtful surprises and gifts 🎈", trait: "Gifts" }
+                ]
+            },
+            {
+                text: "How do you prefer to celebrate achievements?",
+                choices: [
+                    { text: "With lots of hugs and physical celebration 🤗", trait: "Physical" },
+                    { text: "Someone planning a celebration for me 🎉", trait: "Service" },
+                    { text: "Receiving heartfelt congratulations 🌟", trait: "Words" },
+                    { text: "Quality time celebrating together 💫", trait: "Time" },
+                    { text: "Exchange of meaningful gifts 🎁", trait: "Gifts" }
+                ]
+            },
+            {
+                text: "What's your idea of a perfect date night?",
+                choices: [
+                    { text: "Dancing or physical activities together 💃", trait: "Physical" },
+                    { text: "Someone planning everything for me 📋", trait: "Service" },
+                    { text: "Deep, meaningful conversations 💭", trait: "Words" },
+                    { text: "Uninterrupted one-on-one time ✨", trait: "Time" },
+                    { text: "Exchange of special gifts 🎀", trait: "Gifts" }
+                ]
+            },
+            {
+                text: "When someone apologizes, what makes it feel most sincere?",
+                choices: [
+                    { text: "A reconciliatory hug 🤗", trait: "Physical" },
+                    { text: "Taking action to make things right ✅", trait: "Service" },
+                    { text: "A detailed, heartfelt explanation 💌", trait: "Words" },
+                    { text: "Sitting down to talk it through 🗣️", trait: "Time" },
+                    { text: "A thoughtful make-up gift 🎁", trait: "Gifts" }
+                ]
+            },
+            {
+                text: "What makes you feel most supported during challenging times?",
+                choices: [
+                    { text: "Physical presence and comfort 🫂", trait: "Physical" },
+                    { text: "Practical help and support 🤝", trait: "Service" },
+                    { text: "Words of encouragement and advice 💭", trait: "Words" },
+                    { text: "Someone being there to listen 👂", trait: "Time" },
+                    { text: "Receiving care packages or meaningful items 📦", trait: "Gifts" }
+                ]
+            },
+            {
+                text: "How do you prefer to show love to others?",
+                choices: [
+                    { text: "Through hugs and physical affection 💖", trait: "Physical" },
+                    { text: "By doing helpful things for them 🌟", trait: "Service" },
+                    { text: "Expressing my feelings verbally 💝", trait: "Words" },
+                    { text: "Spending quality time together ⭐", trait: "Time" },
+                    { text: "Finding perfect gifts for them 🎁", trait: "Gifts" }
+                ]
+            },
+            {
+                text: "What makes you feel most connected in a relationship?",
+                choices: [
+                    { text: "Regular physical touch and closeness 🤗", trait: "Physical" },
+                    { text: "Partner anticipating and meeting your needs ✨", trait: "Service" },
+                    { text: "Regular expression of feelings 💌", trait: "Words" },
+                    { text: "Shared activities and experiences 🌟", trait: "Time" },
+                    { text: "Exchange of meaningful tokens of love 💝", trait: "Gifts" }
+                ]
+            },
+            {
+                text: "During difficult times, what gesture means the most?",
+                choices: [
+                    { text: "A long, comforting embrace 🫂", trait: "Physical" },
+                    { text: "Someone taking care of practical matters 🌟", trait: "Service" },
+                    { text: "Hearing 'We'll get through this together' 💭", trait: "Words" },
+                    { text: "Someone making time to be there ⭐", trait: "Time" },
+                    { text: "Receiving a meaningful comfort gift 🎁", trait: "Gifts" }
+                ]
+            },
+            {
+                text: "Finally, what makes you feel most loved on a daily basis?",
+                choices: [
+                    { text: "Regular physical affection 💑", trait: "Physical" },
+                    { text: "Little acts of service 🌟", trait: "Service" },
+                    { text: "Daily words of affirmation 💌", trait: "Words" },
+                    { text: "Focused attention and presence 💭", trait: "Time" },
+                    { text: "Small surprise gifts and tokens of love 🎁", trait: "Gifts" }
+                ]
+            }
+        ];
+
+        const personalities = {
+            'Physical': ["Physical Touch", "Your love language is Physical Touch! You feel most connected through physical presence and affection. For you, nothing speaks louder than a warm hug, holding hands, or a gentle touch. Physical closeness makes you feel secure, loved, and truly connected to others. 💝"],
+            'Service': ["Acts of Service", "Your love language is Acts of Service! Actions speak louder than words for you. You feel most loved when others go out of their way to help you or make your life easier. It's the practical expressions of love that really touch your heart. ✨"],
+            'Words': ["Words of Affirmation", "Your love language is Words of Affirmation! You thrive on verbal expressions of love and appreciation. Heartfelt compliments, encouragement, and hearing 'I love you' mean the world to you. Kind words have a powerful impact on your heart. 💌"],
+            'Time': ["Quality Time", "Your love language is Quality Time! You feel most loved when others give you their undivided attention. It's not about what you're doing together, but the fact that you're fully present with each other. Meaningful conversations and shared experiences fill your love tank. 💕"],
+            'Gifts': ["Receiving Gifts", "Your love language is Receiving Gifts! For you, it's the thoughtfulness behind a gift that speaks volumes. It's not about the monetary value, but the fact that someone thought of you and took the time to express their love through a meaningful token. Each gift represents a symbolic expression of love and care. 🎁"]
+        };
+
+        let currentQuestion = 0;
+        let answers = [];
+        
+        // Previous functions remain the same
+        function addMessage(message, isUser = false) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'quiz-message'}`;
+            messageDiv.textContent = message;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const chatContainer = document.getElementById('chat-container');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message quiz-message typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            chatContainer.appendChild(typingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return typingDiv;
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentQuestion + 1) / conversations.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+        }
+
+        function displayQuestion() {
+            updateProgressBar();
+            const question = conversations[currentQuestion];
+            const choicesContainer = document.getElementById('choices-container');
+            
+            if (currentQuestion === 0) {
+                const typingIndicator = showTypingIndicator();
+                setTimeout(() => {
+                    typingIndicator.remove();
+                    addMessage(question.intro);
+                    setTimeout(() => {
+                        const secondTyping = showTypingIndicator();
+                        setTimeout(() => {
+                            secondTyping.remove();
+                            addMessage(question.text);
+                            showChoices(question.choices);
+                        }, 1500);
+                    }, 1000);
+                }, 1500);
+            } else {
+                const typingIndicator = showTypingIndicator();
+                setTimeout(() => {
+                    typingIndicator.remove();
+                    addMessage(question.text);
+                    showChoices(question.choices);
+                }, 1500);
+            }
+        }
+
+        function showChoices(choices) {
+    const choicesContainer = document.getElementById('choices-container');
+    choicesContainer.innerHTML = '';
+    choicesContainer.style.display = 'block';
+    
+    choices.forEach((choice, index) => {
+        const button = document.createElement('button');
+        button.className = 'btn choice-btn w-100 mb-2';
+        button.textContent = choice.text;
+        button.addEventListener('click', () => handleChoice(choice));
+        choicesContainer.appendChild(button);
+    });
+}
+
+function handleChoice(choice) {
+    const choicesContainer = document.getElementById('choices-container');
+    choicesContainer.style.display = 'none';
+    
+    addMessage(choice.text, true);
+    answers.push(choice.trait);
+    
+    currentQuestion++;
+    
+    if (currentQuestion < conversations.length) {
+        displayQuestion();
+    } else {
+        showResults();
+    }
+}
+
+function showResults() {
+    // Count trait frequencies
+    const traitCount = answers.reduce((acc, trait) => {
+        acc[trait] = (acc[trait] || 0) + 1;
+        return acc;
+    }, {});
+    
+    // Find dominant trait
+    let dominantTrait = Object.entries(traitCount).reduce((a, b) => 
+        (b[1] > a[1]) ? b : a
+    )[0];
+    
+    const [title, description] = personalities[dominantTrait];
+    
+    // Show typing indicator before results
+    const typingIndicator = showTypingIndicator();
+    setTimeout(() => {
+        typingIndicator.remove();
+        
+        // Add drumroll message
+        addMessage("🥁 Drumroll please... 🥁");
+        
+        setTimeout(() => {
+            // Show title with delay
+            addMessage(`✨ ${title} ✨`);
+            
+            setTimeout(() => {
+                // Show description with delay
+                addMessage(description);
+                
+                // Add restart button
+                const choicesContainer = document.getElementById('choices-container');
+                choicesContainer.innerHTML = `
+                    <button class="btn choice-btn w-100" onclick="restartQuiz()">
+                        Take the Quiz Again 🔄
+                    </button>
+                `;
+                choicesContainer.style.display = 'block';
+            }, 1500);
+        }, 1500);
+    }, 1500);
+}
+
+function restartQuiz() {
+    currentQuestion = 0;
+    answers = [];
+    const chatContainer = document.getElementById('chat-container');
+    chatContainer.innerHTML = '';
+    const choicesContainer = document.getElementById('choices-container');
+    choicesContainer.style.display = 'none';
+    displayQuestion();
+}
+
+// Start quiz when start button is clicked
+document.getElementById('start-btn').addEventListener('click', () => {
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('chat-screen').style.display = 'block';
+    displayQuestion();
+});
+
+</script>
+</body>
+</html>
