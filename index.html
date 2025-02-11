@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- Previous head section remains the same -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Love Language Quiz</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Previous styles remain the same */
         body {
             background: linear-gradient(135deg, #ffe6e6 0%, #ffb3d9 100%);
             min-height: 100vh;
@@ -97,7 +95,6 @@
 </head>
 <body>
     <div class="progress-bar" id="progress-bar"></div>
-    <!-- Previous container structure remains the same -->
     <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-md-8">
@@ -254,8 +251,6 @@
 
         let currentQuestion = 0;
         let answers = [];
-        
-        // Previous functions remain the same
         function addMessage(message, isUser = false) {
             const chatContainer = document.getElementById('chat-container');
             const messageDiv = document.createElement('div');
@@ -344,25 +339,18 @@ function handleChoice(choice) {
 }
 
 function showResults() {
-    // Count trait frequencies
     const traitCount = answers.reduce((acc, trait) => {
         acc[trait] = (acc[trait] || 0) + 1;
         return acc;
     }, {});
-    
-    // Find dominant trait
     let dominantTrait = Object.entries(traitCount).reduce((a, b) => 
         (b[1] > a[1]) ? b : a
     )[0];
     
     const [title, description] = personalities[dominantTrait];
-    
-    // Show typing indicator before results
     const typingIndicator = showTypingIndicator();
     setTimeout(() => {
         typingIndicator.remove();
-        
-        // Add drumroll message
         addMessage("🥁 Drumroll please... 🥁");
         
         setTimeout(() => {
@@ -370,10 +358,9 @@ function showResults() {
             addMessage(`✨ ${title} ✨`);
             
             setTimeout(() => {
-                // Show description with delay
                 addMessage(description);
                 
-                // Add restart button
+                // restart button
                 const choicesContainer = document.getElementById('choices-container');
                 choicesContainer.innerHTML = `
                     <button class="btn choice-btn w-100" onclick="restartQuiz()">
@@ -395,8 +382,6 @@ function restartQuiz() {
     choicesContainer.style.display = 'none';
     displayQuestion();
 }
-
-// Start quiz when start button is clicked
 document.getElementById('start-btn').addEventListener('click', () => {
     document.getElementById('start-screen').style.display = 'none';
     document.getElementById('chat-screen').style.display = 'block';
